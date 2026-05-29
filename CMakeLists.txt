@@ -34,3 +34,6 @@ target_link_libraries(hello_runtime
     PRIVATE
         runtime
 )
+
+enable_testing()
+add_subdirectory(tests)
