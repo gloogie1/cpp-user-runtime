@@ -25,3 +25,21 @@ TEST(RuntimeTest, YieldTaskRunsAgainUntilComplete){
     EXPECT_EQ(rt.tasks_completed(), 1);
     EXPECT_EQ(rt.tasks_failed(), 0);
 }
+
+
+TEST(RuntimeTest, FailedTaskIsCountedAndNotRescheduled){
+    runtime::Runtime rt;
+    
+    int runs = 0;
+
+    rt.spawn([&runs](runtime::TaskContext&){
+        ++runs;
+
+        return runtime::TaskResult::fail("task failed");
+    });
+    rt.run_until_idle();
+
+    EXPECT_EQ(runs, 1);
+    EXPECT_EQ(rt.tasks_completed(), 0);
+    EXPECT_EQ(rt.tasks_failed(), 1);
+}
