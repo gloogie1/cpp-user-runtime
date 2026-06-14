@@ -11,6 +11,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(runtime_tests
     test_task.cpp
+    test_runtime.cpp
 )
 
 target_link_libraries(runtime_tests
@@ -18,6 +19,7 @@ target_link_libraries(runtime_tests
         runtime
         GTest::gtest_main
 )
+
 
 include(GoogleTest)
 gtest_discover_tests(runtime_tests)
