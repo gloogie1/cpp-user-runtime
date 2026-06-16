@@ -47,8 +47,6 @@ void Runtime::run_until_idle() {
             case TaskResultType::Wait:
                 task->set_state(TaskState::Waiting);
                 // Timer queue comes later. For now, treat wait as completed placeholder.
-                task->set_state(TaskState::Completed);
-                ++tasks_completed_;
                 break;
 
             case TaskResultType::Fail:
