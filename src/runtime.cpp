@@ -24,6 +24,8 @@ TaskId Runtime::spawn(TaskFunction function) {
     return id;
 }
 
+
+
 void Runtime::run_until_idle() {
     TaskContext context;
 
@@ -63,6 +65,15 @@ std::uint64_t Runtime::tasks_completed() const {
 
 std::uint64_t Runtime::tasks_failed() const {
     return tasks_failed_;
+}
+
+std::optional<TaskState> Runtime::task_state(TaskId id) const {
+    for(const auto& task: tasks_){
+        if(task->id() == id){
+            return task->state();
+        }
+    }
+    return std::nullopt;
 }
 
 } // namespace runtime
