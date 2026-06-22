@@ -19,7 +19,7 @@ TaskId Runtime::spawn(TaskFunction function) {
     Task* task_ptr = task.get();
 
     tasks_.push_back(std::move(task));
-    ready_queue_.push(task_ptr);
+    scheduler_.push(task_ptr);
 
     return id;
 }
@@ -29,9 +29,8 @@ TaskId Runtime::spawn(TaskFunction function) {
 void Runtime::run_until_idle() {
     TaskContext context;
 
-    while (!ready_queue_.empty()) {
-        Task* task = ready_queue_.front();
-        ready_queue_.pop();
+    while (!scheduler_.empty()) {
+        Task* task = scheduler_.pop();
 
         TaskResult result = task->run(context);
 
@@ -43,7 +42,7 @@ void Runtime::run_until_idle() {
 
             case TaskResultType::Yield:
                 task->set_state(TaskState::Ready);
-                ready_queue_.push(task);
+                scheduler_.push(task);
                 break;
 
             case TaskResultType::Wait:

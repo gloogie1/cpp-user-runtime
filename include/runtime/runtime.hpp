@@ -1,6 +1,7 @@
 #pragma once
 
 #include "runtime/task.hpp"
+#include "runtime/scheduler.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -24,7 +25,8 @@ public:
 private:
     TaskId next_task_id_;
     std::vector<std::unique_ptr<Task>> tasks_;
-    std::queue<Task*> ready_queue_;
+    //std::queue<Task*> ready_queue_;
+    runtime::Scheduler scheduler_;
 
     std::uint64_t tasks_completed_;
     std::uint64_t tasks_failed_;
