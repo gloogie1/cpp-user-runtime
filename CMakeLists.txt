@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(runtime
     src/task.cpp
     src/runtime.cpp
+    src/scheduler.cpp
 )
 
 target_include_directories(runtime

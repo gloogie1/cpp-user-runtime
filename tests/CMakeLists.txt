@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(runtime_tests
     test_task.cpp
     test_runtime.cpp
+    test_scheduler.cpp
 )
 
 target_link_libraries(runtime_tests
