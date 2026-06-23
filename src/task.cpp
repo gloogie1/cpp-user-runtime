@@ -42,10 +42,11 @@ TaskResult::TaskResult(
       wait_duration_(wait_duration),
       error_(std::move(error)) {}
 
-Task::Task(TaskId id, TaskFunction function)
+Task::Task(TaskId id, TaskFunction function, int priority)
     : id_(id),
       state_(TaskState::Ready),
-      function_(std::move(function)) {}
+      function_(std::move(function)),
+      priority_(priority) {}
 
 TaskId Task::id() const {
     return id_;
@@ -53,6 +54,10 @@ TaskId Task::id() const {
 
 TaskState Task::state() const {
     return state_;
+}
+
+int Task::priority() const {
+    return priority_;
 }
 
 void Task::set_state(TaskState state) {
