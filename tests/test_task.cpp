@@ -58,7 +58,7 @@ TEST(TaskTest, ExplicitArgumentSetsPriority){
         10
     );
     runtime::Task low_prio_task(
-        1,
+        2,
         [](runtime::TaskContext&) {
             return runtime::TaskResult::complete();
         },
