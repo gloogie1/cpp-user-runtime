@@ -12,10 +12,11 @@ Runtime::Runtime()
       tasks_completed_(0),
       tasks_failed_(0) {}
 
-TaskId Runtime::spawn(TaskFunction function) {
+
+TaskId Runtime::spawn(TaskFunction function, int priority) {
     const TaskId id = next_task_id_++;
 
-    auto task = std::make_unique<Task>(id, std::move(function));
+    auto task = std::make_unique<Task>(id, std::move(function), priority);
     Task* task_ptr = task.get();
 
     tasks_.push_back(std::move(task));

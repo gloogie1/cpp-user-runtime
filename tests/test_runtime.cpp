@@ -115,3 +115,30 @@ TEST(RuntimeTest, InvalidTaskIdReturnsEmptyState){
 
     EXPECT_FALSE(state.has_value());
 }
+
+TEST(RuntimeTest, TasksExecuteByPriority){
+    runtime::Runtime rt;
+
+    std::vector<int> execution_order;
+
+    rt.spawn([&execution_order](runtime::TaskContext&){
+        execution_order.push_back(1);
+        return runtime::TaskResult::complete();
+    },5);
+
+    rt.spawn([&execution_order](runtime::TaskContext&){
+        execution_order.push_back(2);
+        return runtime::TaskResult::complete();
+    },1);
+
+    rt.spawn([&execution_order](runtime::TaskContext&){
+        execution_order.push_back(3);
+        return runtime::TaskResult::complete();
+    },10);
+
+    rt.run_until_idle();
+
+    EXPECT_EQ(execution_order, std::vector<int>({3, 1, 2}));
+    EXPECT_EQ(rt.tasks_completed(), 3);
+    EXPECT_EQ(rt.tasks_failed(), 0);
+}

@@ -15,7 +15,7 @@ class Runtime {
 public:
     Runtime();
 
-    TaskId spawn(TaskFunction function);
+    TaskId spawn(TaskFunction function, int priority=0);
     void run_until_idle();
 
     std::uint64_t tasks_completed() const;
