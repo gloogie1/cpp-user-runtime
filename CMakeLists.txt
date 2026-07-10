@@ -13,6 +13,7 @@ add_library(runtime
     src/task.cpp
     src/runtime.cpp
     src/scheduler.cpp
+    src/timer_queue.cpp
 )
 
 target_include_directories(runtime
