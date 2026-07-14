@@ -3,6 +3,7 @@
 #include "runtime/task_context.hpp"
 
 #include <memory>
+#include <thread>
 #include <utility>
 
 namespace runtime {
@@ -30,9 +31,22 @@ TaskId Runtime::spawn(TaskFunction function, int priority) {
 void Runtime::run_until_idle() {
     TaskContext context;
 
-    while (!scheduler_.empty()) {
+    while (!scheduler_.empty() || !timer_queue_.empty()) {
+        wake_expired_tasks(Clock::now());
+
+        if(scheduler_.empty()){
+            auto next_wake = timer_queue_.next_wake_time();
+
+            if(next_wake.has_value()){
+                std::this_thread::sleep_until(*next_wake);
+            }
+
+            continue;
+        }
+        
         Task* task = scheduler_.pop();
 
+        task->set_state(TaskState::Running);
         TaskResult result = task->run(context);
 
         switch (result.type()) {
@@ -46,11 +60,12 @@ void Runtime::run_until_idle() {
                 scheduler_.push(task);
                 break;
 
-            case TaskResultType::Wait:
+            case TaskResultType::Wait: {
                 task->set_state(TaskState::Waiting);
-                // Timer queue comes later. For now, treat wait as completed placeholder.
+                auto wake_time = TimerQueue::Clock::now() + result.wait_duration();
+                timer_queue_.add(task, wake_time);
                 break;
-
+            }
             case TaskResultType::Fail:
                 task->set_state(TaskState::Failed);
                 ++tasks_failed_;
@@ -65,6 +80,16 @@ std::uint64_t Runtime::tasks_completed() const {
 
 std::uint64_t Runtime::tasks_failed() const {
     return tasks_failed_;
+}
+
+
+void Runtime::wake_expired_tasks(TimePoint now) {
+    auto ready_tasks = timer_queue_.pop_ready(now);
+
+    for (const auto& task : ready_tasks) {
+        task->set_state(TaskState::Ready);
+        scheduler_.push(task);
+    }
 }
 
 std::optional<TaskState> Runtime::task_state(TaskId id) const {

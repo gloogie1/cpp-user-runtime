@@ -1,7 +1,9 @@
 #pragma once
 
-#include "runtime/task.hpp"
 #include "runtime/scheduler.hpp"
+#include "runtime/task.hpp"
+#include "runtime/task_result.hpp"
+#include "runtime/timer_queue.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -23,10 +25,16 @@ public:
     std::optional<TaskState> task_state(TaskId id) const;
     
 private:
+    using Clock = TimerQueue::Clock;
+    using TimePoint = TimerQueue::TimePoint;
+
+    void wake_expired_tasks(TimePoint now);
+
     TaskId next_task_id_;
+
     std::vector<std::unique_ptr<Task>> tasks_;
-    //std::queue<Task*> ready_queue_;
     runtime::Scheduler scheduler_;
+    TimerQueue timer_queue_;
 
     std::uint64_t tasks_completed_;
     std::uint64_t tasks_failed_;

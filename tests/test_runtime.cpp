@@ -51,16 +51,22 @@ TEST(RuntimeTest, WaitingTaskIsNotCountedAsCompleted){
     
     int runs = 0;
 
-    rt.spawn([&runs](runtime::TaskContext&){
+    auto task_id = rt.spawn([&runs](runtime::TaskContext&){
         ++runs;
-
-        return runtime::TaskResult::wait_for(std::chrono::milliseconds{100});
+        if(runs == 1){
+            return runtime::TaskResult::wait_for(std::chrono::milliseconds(0));
+        }
+        return runtime::TaskResult::complete();
     });
     rt.run_until_idle();
 
-    EXPECT_EQ(runs, 1);
-    EXPECT_EQ(rt.tasks_completed(), 0);
+    EXPECT_EQ(runs, 2);
+    EXPECT_EQ(rt.tasks_completed(), 1);
     EXPECT_EQ(rt.tasks_failed(), 0);
+
+    auto state = rt.task_state(task_id);
+    ASSERT_TRUE(state.has_value());
+    EXPECT_EQ(state.value(), runtime::TaskState::Completed);
 }
 
 
@@ -94,17 +100,22 @@ TEST(RuntimeTest, TaskStateFail){
 
 TEST(RuntimeTest, TaskStateWaiting){
     runtime::Runtime rt;
+    int runs = 0;
 
-    runtime::TaskId id = rt.spawn([](runtime::TaskContext&){
-
-        return runtime::TaskResult::wait_for(std::chrono::milliseconds(100));
+    runtime::TaskId id = rt.spawn([&runs](runtime::TaskContext&){
+        ++runs;
+        if(runs == 1){
+            return runtime::TaskResult::wait_for(std::chrono::milliseconds(100));
+        }
+        return runtime::TaskResult::complete();
     });
     rt.run_until_idle();
     auto state = rt.task_state(id);
 
-    EXPECT_TRUE(state.has_value());
-    EXPECT_EQ(rt.task_state(id), runtime::TaskState::Waiting);
-    EXPECT_EQ(rt.tasks_completed(), 0);
+    ASSERT_TRUE(state.has_value());
+    EXPECT_EQ(runs, 2);
+    EXPECT_EQ(state.value(), runtime::TaskState::Completed);
+    EXPECT_EQ(rt.tasks_completed(), 1);
     EXPECT_EQ(rt.tasks_failed(), 0);
 }
 
@@ -141,4 +152,27 @@ TEST(RuntimeTest, TasksExecuteByPriority){
     EXPECT_EQ(execution_order, std::vector<int>({3, 1, 2}));
     EXPECT_EQ(rt.tasks_completed(), 3);
     EXPECT_EQ(rt.tasks_failed(), 0);
+}
+
+
+TEST(RuntimeTest, WaitingTaskRunsAgainAndCompletes){
+    runtime::Runtime rt;
+    int runs = 0;
+    auto task_id = rt.spawn([&runs](runtime::TaskContext&){
+        ++runs;
+        if (runs == 1){
+            return runtime::TaskResult::wait_for(std::chrono::milliseconds(0));
+        }
+
+        return runtime::TaskResult::complete();
+    });
+    rt.run_until_idle();
+
+    EXPECT_EQ(runs,2);
+    EXPECT_EQ(rt.tasks_completed(), 1);
+    EXPECT_EQ(rt.tasks_failed(), 0);
+    
+    auto state = rt.task_state(task_id);
+    ASSERT_TRUE(state.has_value());
+    EXPECT_EQ(state.value(), runtime::TaskState::Completed);
 }
