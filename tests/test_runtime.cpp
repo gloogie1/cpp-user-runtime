@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <string>
 
 
 TEST(RuntimeTest, YieldTaskRunsAgainUntilComplete){
@@ -175,4 +176,31 @@ TEST(RuntimeTest, WaitingTaskRunsAgainAndCompletes){
     auto state = rt.task_state(task_id);
     ASSERT_TRUE(state.has_value());
     EXPECT_EQ(state.value(), runtime::TaskState::Completed);
+}
+
+TEST(RuntimeTest, RunsReadyTaskWhileAnotherTaskWaits){
+    runtime::Runtime rt;
+
+    std::vector<std::string> execution_order;
+
+    int a_runs = 0;
+    rt.spawn([&a_runs, &execution_order](runtime::TaskContext&){
+        execution_order.push_back("a"+std::to_string(++a_runs));
+        if (a_runs == 1){
+            return runtime::TaskResult::wait_for(std::chrono::milliseconds(10));
+        }
+
+        return runtime::TaskResult::complete();
+    });
+    
+    rt.spawn([&execution_order](runtime::TaskContext&){
+        execution_order.push_back("b");
+        return runtime::TaskResult::complete();
+    });
+
+    rt.run_until_idle();
+    EXPECT_EQ(a_runs, 2);
+    EXPECT_EQ(rt.tasks_completed(), 2);
+    EXPECT_EQ(rt.tasks_failed(), 0);
+    EXPECT_EQ(execution_order, std::vector<std::string>({"a1", "b", "a2"}));
 }
