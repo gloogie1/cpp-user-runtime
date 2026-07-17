@@ -4,6 +4,7 @@
 #include "runtime/task.hpp"
 #include "runtime/task_result.hpp"
 #include "runtime/timer_queue.hpp"
+#include "runtime/runtime_metrics.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -16,6 +17,7 @@ namespace runtime {
 class Runtime {
 public:
     Runtime();
+    const RuntimeMetrics& metrics() const;
 
     TaskId spawn(TaskFunction function, int priority=0);
     void run_until_idle();
@@ -30,14 +32,14 @@ private:
 
     void wake_expired_tasks(TimePoint now);
 
-    TaskId next_task_id_;
+    RuntimeMetrics metrics_;
+
+    TaskId next_task_id_{1};
 
     std::vector<std::unique_ptr<Task>> tasks_;
     runtime::Scheduler scheduler_;
     TimerQueue timer_queue_;
 
-    std::uint64_t tasks_completed_;
-    std::uint64_t tasks_failed_;
 };
 
 } // namespace runtime

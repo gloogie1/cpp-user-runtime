@@ -197,10 +197,16 @@ TEST(RuntimeTest, RunsReadyTaskWhileAnotherTaskWaits){
         execution_order.push_back("b");
         return runtime::TaskResult::complete();
     });
-
     rt.run_until_idle();
+
+    const auto& metrics = rt.metrics();
+
     EXPECT_EQ(a_runs, 2);
-    EXPECT_EQ(rt.tasks_completed(), 2);
-    EXPECT_EQ(rt.tasks_failed(), 0);
+    EXPECT_EQ(metrics.tasks_spawned, 2);
+    EXPECT_EQ(metrics.task_invocations, 3);
+    EXPECT_EQ(metrics.tasks_completed, 2);
+    EXPECT_EQ(metrics.tasks_failed, 0);
+    EXPECT_EQ(metrics.task_yields, 0);
+    EXPECT_EQ(metrics.task_waits, 1);
     EXPECT_EQ(execution_order, std::vector<std::string>({"a1", "b", "a2"}));
 }
