@@ -14,6 +14,7 @@ add_library(runtime
     src/runtime.cpp
     src/scheduler.cpp
     src/timer_queue.cpp
+    src/arena.cpp
 )
 
 target_include_directories(runtime
