@@ -15,6 +15,7 @@ add_executable(runtime_tests
     test_scheduler.cpp
     test_timer_queue.cpp
     test_arena.cpp
+    test_object_pool.cpp
 )
 
 target_link_libraries(runtime_tests

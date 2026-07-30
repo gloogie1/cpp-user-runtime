@@ -13,7 +13,8 @@ public:
     Arena& operator=(const Arena&) = delete;
 
     void* allocate(std::size_t bytes, std::size_t alignment);
-
+    void rewind(std::size_t previous) noexcept;
+    
     void reset() noexcept;
 
     std::size_t capacity() const noexcept;

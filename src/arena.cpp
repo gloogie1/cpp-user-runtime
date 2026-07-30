@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <new>
+#include <cassert>
 
 namespace runtime{
 Arena::Arena(std::size_t capacity):
@@ -26,6 +27,11 @@ void* Arena::allocate(std::size_t bytes, std::size_t alignment){
     offset_ = aligned_offset + bytes;
 
     return aligned;
+}
+
+void Arena::rewind(std::size_t previous) noexcept{
+    assert(previous <= offset_);
+    offset_ = previous;
 }
 
 
