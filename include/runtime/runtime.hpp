@@ -1,25 +1,27 @@
 #pragma once
 
+#include "runtime/object_pool.hpp"
+#include "runtime/runtime_metrics.hpp"
 #include "runtime/scheduler.hpp"
 #include "runtime/task.hpp"
 #include "runtime/task_result.hpp"
 #include "runtime/timer_queue.hpp"
-#include "runtime/runtime_metrics.hpp"
 
+#include <cstddef>
 #include <cstdint>
-#include <memory>
-#include <queue>
-#include <vector>
 #include <optional>
+#include <vector>
+
 
 namespace runtime {
 
 class Runtime {
 public:
-    Runtime();
+    explicit Runtime(std::size_t task_pool_capacity_bytes = 1024 * 1024);
     const RuntimeMetrics& metrics() const;
 
     TaskId spawn(TaskFunction function, int priority=0);
+
     void run_until_idle();
 
     std::uint64_t tasks_completed() const;
@@ -36,8 +38,9 @@ private:
 
     TaskId next_task_id_{1};
 
-    std::vector<std::unique_ptr<Task>> tasks_;
-    runtime::Scheduler scheduler_;
+    ObjectPool<Task> task_pool_;
+    std::vector<Task*> tasks_;
+    Scheduler scheduler_;
     TimerQueue timer_queue_;
 
 };

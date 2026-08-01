@@ -13,6 +13,7 @@ class Task;
 class Scheduler {
     public:
         void push(Task* task);
+        void reserve(std::size_t capacity);
         Task* pop();
         
         bool empty() const;

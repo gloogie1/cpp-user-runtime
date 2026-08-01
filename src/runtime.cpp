@@ -8,20 +8,33 @@
 
 namespace runtime {
 
-Runtime::Runtime() = default;
+Runtime::Runtime(std::size_t task_pool_capacity_bytes)
+    : task_pool_(task_pool_capacity_bytes) {
+}
 
 const RuntimeMetrics& Runtime::metrics() const {
     return metrics_;
 }
 
 TaskId Runtime::spawn(TaskFunction function, int priority) {
-    const TaskId id = next_task_id_++;
+    if (tasks_.size() == tasks_.capacity()) {
+        const std::size_t new_capacity =
+            tasks_.capacity() == 0 ? 1 : tasks_.capacity() * 2;
 
-    auto task = std::make_unique<Task>(id, std::move(function), priority);
-    Task* task_ptr = task.get();
+        tasks_.reserve(new_capacity);
+    }
 
-    tasks_.push_back(std::move(task));
-    scheduler_.push(task_ptr);
+    scheduler_.reserve(tasks_.capacity());
+
+    const TaskId id = next_task_id_;
+
+    Task* task =
+        task_pool_.create(id, std::move(function), priority);
+
+    tasks_.push_back(task);
+    scheduler_.push(task);
+
+    ++next_task_id_;
     ++metrics_.tasks_spawned;
 
     return id;
