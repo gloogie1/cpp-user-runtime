@@ -18,22 +18,20 @@ The project implements the core mechanics of a small execution runtime: task rep
 - Typed `ObjectPool<T>` with placement construction and reverse-order destruction
 - Arena-backed ownership of runtime `Task` objects
 - GoogleTest coverage for tasks, scheduling, timers, runtime behavior, allocation, object lifetime, and constructor-failure rollback
-
 ## Architecture Overview
 
 ```text
-                         Runtime
-                            |
-        +-------------------+-------------------+
-        |                   |                   |
-        v                   v                   v
- ObjectPool<Task>       Scheduler           TimerQueue
- owns Task objects      ready Task*         waiting Task*
-        |
-        v
- vector<Task*>
- TaskId lookup index
-```
+                              Runtime
+                                 |
+        +----------------+-------+-------+----------------+
+        |                |               |                |
+        v                v               v                v
+ ObjectPool<Task>   vector<Task*>     Scheduler       TimerQueue
+ owns Task objects  lookup registry   ready Task*     waiting Task*
+
+                    All Task* values are non-owning
+
+
 
 The main components have separate responsibilities:
 
